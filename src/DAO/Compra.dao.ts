@@ -38,7 +38,7 @@ class CompraDAO {
             .populate<{ vendedor: IUser }>({ path: 'vendedor', select: 'nombre', model: "User"})
             .populate<{ productos: productos2[] }>({ path: 'productos.productID', model: 'Prenda', select: 'nombre referencia imagenUrl' })
             .populate( { path: 'idPago', model: "Pago" } )
-            .populate( { path: "idEnvio", model: "Envio" } )
+            // .populate( { path: "idEnvio", model: "Envio" } )
             .exec( (err, docs) => {
                 if(err) return reject(err);
                 return resolve(docs!);

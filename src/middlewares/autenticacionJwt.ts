@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken';
 import { usuarioDao } from '@DAO/Usuario.dao';
 import { CODES_HTTP } from '@Constants/global';
+import Roles from '@Models/Roles';
 
 interface IPayload {
     _id: string;
@@ -11,7 +12,8 @@ interface IPayload {
 
 export const TokenValidation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        
+        await Roles.find();
+
         const token = req.header('token');
         if( !token ) return res.status(CODES_HTTP.UNAUTHORIZED).json({
             success: false,

@@ -5,6 +5,10 @@ import cors, { CorsOptions } from "cors";
 import { queryParser } from "express-query-parser";
 import compression from "compression";
 import helmet from "helmet";
+import { connectDB } from "database";
+
+connectDB();
+const showDataLog = require("@Utils/logger/logger");
 
 class App{
 
@@ -40,14 +44,14 @@ class App{
     }
 
     private router(): void{
-        this.app.use( indexRoutes )
+        this.app.use( '/v1', indexRoutes )
         
     }
 
     start(): void {
         this.app.listen( this.app.get('port'), () => {
             console.log(`Server on http://localhost:${this.app.get('port')}`)
-            // showDataLog.info({ message: 'Server running' })
+            showDataLog.info({ message: 'Server running' })
         })
     }
 }

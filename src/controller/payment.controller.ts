@@ -103,7 +103,7 @@ class PaymentController {
                 showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${req.userId}, vendedor - ${vendedor}` });
 
                 const dataResponse = {
-                    // payUrl: resul.body.init_point,
+                    payUrl: resul.body.init_point,
                     data: resul
                 };
 
@@ -116,7 +116,7 @@ class PaymentController {
                 console.log("Error al crear orden mercado pago:", error);
                 return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
                     sucess: false,
-                    message: "Algo va mal"
+                    message: "Algo va mal: " + error
                 })
             }
         }
@@ -136,7 +136,7 @@ class PaymentController {
 
                 const payid = query["data.id"] || 0;
 
-                const data = await mercadoPagoService.findPayment(payid.toString());
+                const data = await mercadoPagoService.findPayment(parseInt(payid.toString()));
                 
                 if (data.success === false) {
                     throw data.message
