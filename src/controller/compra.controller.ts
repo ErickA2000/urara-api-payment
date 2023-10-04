@@ -137,6 +137,8 @@ class CompraController {
         } else {
             newBuy.estado = estado;
         }
+
+        //falta agregar funcionalidad de agregar datos a pago
         
         //agregando numero de factura
         await getNextSequenceValue("compraId")
