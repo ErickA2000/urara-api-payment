@@ -1,5 +1,6 @@
 import Color from '@Models/Color';
 import Counter from '@Models/Counter';
+import Envio from '@Models/Envio';
 import Roles from '@Models/Roles';
 
 export const createCounter = async () => {
@@ -20,6 +21,7 @@ export const initialModels = async () => {
     try {
         await Roles.find();
         await Color.find();
+        await Envio.find();
     } catch (error) {
         console.log("Initial models error: ", error);
     }

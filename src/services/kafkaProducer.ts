@@ -1,5 +1,5 @@
 import { Kafka, Message, Producer, ProducerBatch, TopicMessages } from 'kafkajs'
-import { brokers_kafka, clientId_kafka, topic_kafka } from 'config'
+import { brokers_kafka, clientId_payment_kafka, topic_payment_kafka } from 'config'
 import { CustomMessageFormat } from '@Interfaces/kafka.interface'
 
 
@@ -32,7 +32,7 @@ export default class ProducerFactory {
         })
 
         const topicMessages: TopicMessages = {
-            topic: topic_kafka,
+            topic: topic_payment_kafka,
             messages: kafkaMessages
         }
 
@@ -45,7 +45,7 @@ export default class ProducerFactory {
 
     private createProducer(): Producer {
         const kafka = new Kafka({
-            clientId: clientId_kafka,
+            clientId: clientId_payment_kafka,
             brokers: brokers_kafka,
         })
 

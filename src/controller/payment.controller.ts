@@ -106,11 +106,11 @@ class PaymentController {
 
                 
 
-                await compraDAO.createBuy( newBuy );
+                const compra = await compraDAO.createBuy( newBuy );
                 showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${req.userId}, vendedor - ${vendedor}` });
 
                 //enviar mensaje a kafka
-                await producer.sendBatch( [ { idCliente: req.userId } ] );
+                await producer.sendBatch( [ { idCliente: req.userId, idCompra: compra[0]._id } ] );
                 await producer.shutdown();
 
                 const dataResponse = {

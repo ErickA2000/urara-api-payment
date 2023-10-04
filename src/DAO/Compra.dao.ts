@@ -1,4 +1,4 @@
-import { Icompra, Icompra2, productos2 } from "@Interfaces/compra.interfaces";
+import { Icompra, Icompra2, IcompraUpdate, productos2 } from "@Interfaces/compra.interfaces";
 import { IUser } from "@Interfaces/usuario.interface";
 import Compra from "@Models/Compra";
 
@@ -83,7 +83,7 @@ class CompraDAO {
         )
     }
 
-    async createBuy( compra: Object ){
+    async createBuy( compra: Object ): Promise<Icompra[]>{
         return new Promise( (resolve, reject) => Compra.insertMany( compra, (err, docs) => {
             if(err) return reject(err);
             return resolve(docs);

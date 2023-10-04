@@ -70,3 +70,10 @@ export interface productos2{
     descuento: number,
     tallasCantidadPrecio: ItallaCantidadPrecio    
 }
+
+export interface IcompraUpdate {
+    observaciones?: string,
+    estado?: string,
+    isCambioEstado?: boolean,
+    idEnvio?: Types.ObjectId 
+}

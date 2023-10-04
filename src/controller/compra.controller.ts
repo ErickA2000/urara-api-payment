@@ -98,7 +98,7 @@ class CompraController {
 
             res.status(CODES_HTTP.OK).json({
                 success: true,
-                data: dataEncrypt
+                data: shopping
             });
         } catch (error) {
             return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({

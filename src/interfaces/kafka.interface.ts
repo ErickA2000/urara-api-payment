@@ -1,7 +1,9 @@
 export interface CustomMessageFormat { 
     idCliente: string;
-    tokenServiEnvio?: string;
-    estado?: string;
-    paqueteria?: string;
-    montoEnvio?: number
+    idCompra: string
+}
+
+export interface MessageProcessor {
+    idEnvio: string;
+    idCompra: string
 }
