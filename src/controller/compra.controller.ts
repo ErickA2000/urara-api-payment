@@ -138,6 +138,18 @@ class CompraController {
             newBuy.estado = estado;
         }
         
+        //agregando numero de factura
+        await getNextSequenceValue("compraId")
+            .then( numFactura => {
+                newBuy.numFactura = numFactura?.toString().padStart(16, "0")
+            } )
+            .catch( err => {
+                return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
+                    success: false,
+                    message: "Error al generar número de factura. Error ->" + err
+                })
+            } )
+
         //buscando prendas para actualizar cantidad
         
         for (let producto of productos as Iproductos[]) {
@@ -167,18 +179,7 @@ class CompraController {
                 }
             }
         }
-        
-        //agregando numero de factura
-        await getNextSequenceValue("compraId")
-            .then( numFactura => {
-                newBuy.numFactura = numFactura?.toString().padStart(16, "0")
-            } )
-            .catch( err => {
-                return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: "Error al generar número de factura. Error ->" + err
-                })
-            } )
+          
 
         compraDAO.createBuy( newBuy );
         showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${cliente}, vendedor - ${vendedor}` })

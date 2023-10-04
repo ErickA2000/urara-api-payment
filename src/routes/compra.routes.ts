@@ -16,11 +16,11 @@ class CompraRouter{
         this.router.get('/one/:compraID', [ autenticacion.TokenValidation ], compraController.getOneBuysById);
         this.router.get('/user', [ autenticacion.TokenValidation ], compraController.getAllShoppingByUserPaginate);
          
-        this.router.post('/', [ autenticacion.TokenValidation, autenticacion.isModerador, readRequest.decryptRequest, cleanRequest.cleanCompra, validacion.verificarCampoObligatoriosCompra ], 
-            compraController.createCompra);
+        this.router.post('/', [ autenticacion.TokenValidation, autenticacion.isModerador, readRequest.decryptRequest, cleanRequest.cleanCompra, 
+            validacion.verificarCampoObligatoriosCompra ], compraController.createCompra);
 
-        this.router.put( '/cambio-estado/:compraID', [ autenticacion.TokenValidation, autenticacion.isAdminOrModerador, validacion.verificarLongitud_id, cleanRequest.cleanCompra ],
-         compraController.cambioEstadoCompra );
+        this.router.put( '/cambio-estado/:compraID', [ autenticacion.TokenValidation, autenticacion.isAdminOrModerador, validacion.verificarLongitud_id, 
+            cleanRequest.cleanCompra ], compraController.cambioEstadoCompra );
         this.router.get('/factura-pdf/:compraID', [ autenticacion.TokenValidation, validacion.verificarLongitud_id ], compraController.generarPDF);
     }
 

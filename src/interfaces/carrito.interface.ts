@@ -8,6 +8,6 @@ export interface ICarrito extends Document{
 }
 
 export interface ICarritoAdd{
-    cliente: Types.ObjectId | IUser,
+    cliente: string,
     productos: [ Iproductos ] | productos2[]
 }

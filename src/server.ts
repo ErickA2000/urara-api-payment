@@ -1,8 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { createCounter } from "@Libs/initialSetup";
+import { createCounter, initialModels } from "@Libs/initialSetup";
 createCounter();
+initialModels();
 
 import App from "app";
 

@@ -57,10 +57,10 @@ class CarritoController{
     }
 
     public async addCart( req: Request, res: Response ){
-        const { cliente, productos } = req.body;
-
+        const { productos } = req.body;
+        
         try {
-            await carritoDAO.addCart( { cliente, productos } );
+            await carritoDAO.addCart( { cliente: req.userId , productos } );
 
             res.status(CODES_HTTP.OK).json({
                 success: true,
