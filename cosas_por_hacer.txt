@@ -1,0 +1,1 @@
+falta agregar funcionalidad de agregar datos a pago en compra controller
