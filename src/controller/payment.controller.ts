@@ -7,7 +7,7 @@ import { compraDAO } from "@DAO/Compra.dao";
 import { IResponseMercadoPago, PayMercadopago } from "@Interfaces/payment.interfaces";
 import { Icompra, Iproductos } from "@Interfaces/compra.interfaces";
 import { pagoDAO } from "@DAO/Pago.dao";
-import ProducerFactory from "@Services/kafka";
+import ProducerFactory from "@Services/kafkaProducer";
 // import { envioDAO } from "@DAO/Envio.dao";
 
 const showCompraLog = require('../util/logger/logger.compra');
@@ -24,6 +24,37 @@ class PaymentController {
         if (payment.payservice == "mercadopago") {
 
             try {
+
+                 //buscando prendas para comprobar cantidad
+                 for (let producto of payment.productos as Iproductos[]) {
+                    const foundPrenda = await prendaDAO.getOneById( producto.productID );
+                    
+                    for (let tallaCantidadPrecio of foundPrenda?.tallasCantidadPrecio!) {
+                        
+                        if (producto.tallasCantidadPrecio.talla == tallaCantidadPrecio.talla) {
+                            
+                            for( let color of tallaCantidadPrecio.colores ){
+                                
+                                if( producto.tallasCantidadPrecio.idColor == color.idColor ){
+                                    
+                                    if(  color.cantidad < producto.tallasCantidadPrecio.cantidad ){
+                                        return res.status(CODES_HTTP.BAD_REQUEST).json({
+                                            success: false,
+                                            message: "Cantidad de prendas insuficiente"
+                                        });
+                                    }
+
+                                    color.cantidad -= producto.tallasCantidadPrecio.cantidad;
+                                    tallaCantidadPrecio.cantidad -= producto.tallasCantidadPrecio.cantidad;
+                        
+                                    await prendaDAO.updateById( foundPrenda._id, foundPrenda );
+            
+                                }
+                            }
+                        }
+                    }
+                }
+
                 //agregando numero de factura
                 let numFactu: any;
                 await getNextSequenceValue("compraId")
@@ -73,35 +104,7 @@ class PaymentController {
                 newBuy.idEnvio = "" //envio[0]._id;
                 newBuy.isCambioEstado = false;
 
-                 //buscando prendas para comprobar cantidad
-                for (let producto of payment.productos as Iproductos[]) {
-                    const foundPrenda = await prendaDAO.getOneById( producto.productID );
-                    
-                    for (let tallaCantidadPrecio of foundPrenda?.tallasCantidadPrecio!) {
-                        
-                        if (producto.tallasCantidadPrecio.talla == tallaCantidadPrecio.talla) {
-                            
-                            for( let color of tallaCantidadPrecio.colores ){
-                                
-                                if( producto.tallasCantidadPrecio.idColor == color.idColor ){
-                                    
-                                    if(  color.cantidad < producto.tallasCantidadPrecio.cantidad ){
-                                        return res.status(CODES_HTTP.BAD_REQUEST).json({
-                                            success: false,
-                                            message: "Cantidad de prendas insuficiente"
-                                        });
-                                    }
-
-                                    color.cantidad -= producto.tallasCantidadPrecio.cantidad;
-                                    tallaCantidadPrecio.cantidad -= producto.tallasCantidadPrecio.cantidad;
-                        
-                                    await prendaDAO.updateById( foundPrenda._id, foundPrenda );
-            
-                                }
-                            }
-                        }
-                    }
-                }
+                
 
                 await compraDAO.createBuy( newBuy );
                 showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${req.userId}, vendedor - ${vendedor}` });
