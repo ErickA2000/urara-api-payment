@@ -7,6 +7,7 @@ import { compraDAO } from "@DAO/Compra.dao";
 import { IResponseMercadoPago, PayMercadopago } from "@Interfaces/payment.interfaces";
 import { Icompra, Iproductos } from "@Interfaces/compra.interfaces";
 import { pagoDAO } from "@DAO/Pago.dao";
+import ProducerFactory from "@Services/kafka";
 // import { envioDAO } from "@DAO/Envio.dao";
 
 const showCompraLog = require('../util/logger/logger.compra');
@@ -16,6 +17,9 @@ class PaymentController {
     public async payment(req: Request, res: Response) {
         const { vendedor } = req.body;
         const payment = req.body;
+
+        const producer = new ProducerFactory();
+        await producer.start();
 
         if (payment.payservice == "mercadopago") {
 
@@ -99,8 +103,12 @@ class PaymentController {
                     }
                 }
 
-                compraDAO.createBuy( newBuy );
+                await compraDAO.createBuy( newBuy );
                 showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${req.userId}, vendedor - ${vendedor}` });
+
+                //enviar mensaje a kafka
+                await producer.sendBatch( [ { idCliente: req.userId } ] );
+                await producer.shutdown();
 
                 const dataResponse = {
                     payUrl: resul.body.init_point,
