@@ -68,7 +68,7 @@ const compraSchema = new Schema({
     estado: String,
     isCambioEstado: Boolean,
     idPago: Types.ObjectId,
-    idEnvio: String
+    idEnvio: Types.ObjectId
 },{
     timestamps: true
 })

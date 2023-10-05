@@ -4,10 +4,9 @@ import { Types } from "mongoose";
 
 const updatePurchaseShipping = async ( data: MessageProcessor ): Promise<void> => {
     try {
+        const idEnvio = new Types.ObjectId(data.idEnvio);
         
-        const updateCompra = await compraDAO.updateBuy( data.idCompra, { idEnvio: Types.ObjectId.createFromHexString(data.idEnvio) } );
-
-        console.log("Actualizacion envio de compra: ", updateCompra);
+        await compraDAO.updateBuy( data.idCompra, { idEnvio } );
 
     } catch (error) {
         console.log("Algo va mal:", error)

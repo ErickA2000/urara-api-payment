@@ -8,7 +8,6 @@ import { IResponseMercadoPago, PayMercadopago } from "@Interfaces/payment.interf
 import { Icompra, Iproductos } from "@Interfaces/compra.interfaces";
 import { pagoDAO } from "@DAO/Pago.dao";
 import ProducerFactory from "@Services/kafkaProducer";
-// import { envioDAO } from "@DAO/Envio.dao";
 
 const showCompraLog = require('../util/logger/logger.compra');
 
@@ -17,9 +16,6 @@ class PaymentController {
     public async payment(req: Request, res: Response) {
         const { vendedor } = req.body;
         const payment = req.body;
-
-        const producer = new ProducerFactory();
-        await producer.start();
 
         if (payment.payservice == "mercadopago") {
 
@@ -87,31 +83,15 @@ class PaymentController {
                     monto: 0
                 } );
 
-                //creando registro de envio
-                // const envio = await envioDAO.addShipment( {
-                //     idCliente: req.userId,
-                //     tokenServiEnvio: "",
-                //     estado: "pendiente",
-                //     paqueteria: "",
-                //     montoEnvio: 0
-                // });
-
                 const newBuy = payment as Icompra;
                 newBuy.numFactura = numFactu;
                 newBuy.estado = "pendiente";
                 newBuy.cliente = req.userId;
                 newBuy.idPago = pago[0]._id;
-                newBuy.idEnvio = "" //envio[0]._id;
                 newBuy.isCambioEstado = false;
-
-                
 
                 const compra = await compraDAO.createBuy( newBuy );
                 showCompraLog.info({ message: `createCompra | Nueva compra realizada -> cliente - ${req.userId}, vendedor - ${vendedor}` });
-
-                //enviar mensaje a kafka
-                await producer.sendBatch( [ { idCliente: req.userId, idCompra: compra[0]._id } ] );
-                await producer.shutdown();
 
                 const dataResponse = {
                     payUrl: resul.body.init_point,
@@ -208,7 +188,10 @@ class PaymentController {
 export const paymentController = new PaymentController();
 
 async function updateStateOrder ( idOrder: string, dataPayment: IResponseMercadoPago, status: string ){
-        
+    
+    const producer = new ProducerFactory();
+    await producer.start();
+
     const order = await compraDAO.getOneByNumFactura( idOrder );
     order.estado = status;
     order.total = dataPayment.transaction_amount;
@@ -225,6 +208,12 @@ async function updateStateOrder ( idOrder: string, dataPayment: IResponseMercado
     await pagoDAO.updatePayment( pago._id, pago );
     
     const updateOrder = await compraDAO.updateBuy( order._id, order );
+
+    //enviar mensaje a kafka para realizar envio
+    if( status === "pagado" ){
+        await producer.sendBatch( [ { idCliente: updateOrder.cliente as string, idCompra: updateOrder._id } ] );
+        await producer.shutdown();
+    }
     
     return updateOrder;
     
