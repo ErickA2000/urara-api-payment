@@ -91,8 +91,7 @@ export const isAdminOrModerador = async ( req: Request, res: Response, next: Nex
     
     try {
         
-        const user = await usuarioDao.getOneById( req.userId );
-        
+        const user = await usuarioDao.getOneById( req.userId ); 
     
         for( let rol of user.roles ){
             if(rol.nombre === "admin" || rol.nombre === "moderador" ){
