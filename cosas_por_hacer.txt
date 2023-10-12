@@ -1,1 +1,3 @@
 falta agregar funcionalidad de agregar datos a pago en compra controller
+
+revisar datos a mostrar en el pdf

@@ -60,7 +60,16 @@ class CarritoController{
         const { productos } = req.body;
         
         try {
-            await carritoDAO.addCart( { cliente: req.userId , productos } );
+
+            const cart = await carritoDAO.getOneByCliente( req.userId );
+
+            if( !cart ){
+
+                await carritoDAO.addCart( { cliente: req.userId , productos } );
+            }else{
+                await carritoDAO.updateCart( req.userId, { cliente: req.userId, productos } );
+            }
+
 
             res.status(CODES_HTTP.OK).json({
                 success: true,
