@@ -94,6 +94,7 @@ class CarritoController{
 
                 let productosArray: Iproductos[] = cart.productos;
 
+                if( productosArray.length === 0 ) isNew = true;
                 if( isNew ) productosArray.push(productos);
                 
 
@@ -131,6 +132,38 @@ class CarritoController{
             return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message: "Error al actualizar carrito -> " + error
+            })
+        }
+    }
+
+    public async deleteProductOfCart( req: Request, res: Response ){
+        const ID  = req.params.ID as unknown as number;
+
+        try {
+
+            const cart = await carritoDAO.getOneByCliente( req.userId );
+            
+            if( ID >= cart.productos.length ) throw Error("Posición de producto no valida");
+
+            cart.productos.splice( ID, 1 );
+
+            const tempCart: ICarritoAdd = {
+                cliente: req.userId,
+                productos: cart.productos
+            }
+
+            const newCart = await carritoDAO.updateCart( req.userId, tempCart );
+
+            res.status(CODES_HTTP.OK).json({
+                success: true,
+                message: "Producto eliminado del carrito",
+                data: newCart
+            });
+            
+        } catch (error) {
+            return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: "Error al eliminar producto:" + error
             })
         }
     }

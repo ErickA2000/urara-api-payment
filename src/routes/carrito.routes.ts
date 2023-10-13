@@ -18,6 +18,8 @@ class CarritoRoutes{
             carritoController.addCart );
 
         this.router.put("/update", [ autenticacion.TokenValidation, cleanRequest.cleanCarrito ], carritoController.updateCart );
+
+        this.router.delete("/delete_product/:ID", [ autenticacion.TokenValidation ], carritoController.deleteProductOfCart);
     }
 }
 
