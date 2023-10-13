@@ -48,3 +48,16 @@ export const verificarLongitud_id = ( req: Request, res: Response, next: NextFun
     
     next();
 }
+
+export const verificarProductosCarrito = ( req: Request, res: Response, next: NextFunction ) => {
+    const { productos } = req.body;
+
+    if( productos instanceof Object ){
+        next();
+    }else{
+        return res.status(CODES_HTTP.BAD_REQUEST).json({
+            success: false,
+            message: "Los productos no estan en un objeto"
+        });
+    }
+}

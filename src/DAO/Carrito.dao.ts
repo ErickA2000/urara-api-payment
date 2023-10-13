@@ -1,4 +1,4 @@
-import { ICarrito, ICarritoAdd } from "@Interfaces/carrito.interface";
+import { ICarritoPopulate, ICarritoAdd, ICarrito } from "@Interfaces/carrito.interface";
 import { productos2 } from "@Interfaces/compra.interfaces";
 import { IUser } from "@Interfaces/usuario.interface";
 import Carrito from "@Models/Carrito";
@@ -6,7 +6,7 @@ import { PaginateResult } from "mongoose";
 
 class CarritoDAO{
 
-    async getAll(): Promise<ICarrito[]>{
+    async getAll(): Promise<ICarritoPopulate[]>{
         return new Promise( (resolve, reject) => Carrito
             .find()
             .populate<{ cliente: IUser }>({ path: 'cliente', select: 'nombre' })
@@ -18,7 +18,7 @@ class CarritoDAO{
         );
     }
 
-    async getAllPaginate( page: number, limit: number ): Promise<PaginateResult<ICarrito>>{
+    async getAllPaginate( page: number, limit: number ): Promise<PaginateResult<ICarritoPopulate>>{
         const options = {
             populate: [{ path: 'cliente', select: 'nombre' },
             { path: "productos.productID", model: 'Prenda', select: 'nombre tallasCantidadPrecio descuento imagenUrl estado'}
@@ -35,12 +35,22 @@ class CarritoDAO{
         );
     }
 
-    async getOneByCliente( id_cliente: string ): Promise<ICarrito>{
+    async getOneByClientePopulate( id_cliente: string ): Promise<ICarritoPopulate>{
         return new Promise( (resolve, reject) => Carrito
             .findOne({ cliente: id_cliente })
             .populate<{ cliente: IUser }>({ path: 'cliente', select: 'nombre' })
             .populate<{ productos: productos2[] }>({ path: "productos.productID", model: 'Prenda', select: 'nombre tallasCantidadPrecio descuento imagenUrl estado'})
             .populate({ path: "productos.tallasCantidadPrecio.idColor", model: "Color",})
+            .exec( ( err, docs) => {
+                if (err) return reject(err);
+                return resolve(docs!);
+            })
+        );
+    }
+
+    async getOneByCliente( id_cliente: string ): Promise<ICarrito>{
+        return new Promise( (resolve, reject) => Carrito
+            .findOne({ cliente: id_cliente })
             .exec( ( err, docs) => {
                 if (err) return reject(err);
                 return resolve(docs!);
@@ -57,7 +67,7 @@ class CarritoDAO{
         );
     }
 
-    async updateCart( id: string, cart: ICarritoAdd ): Promise<ICarrito>{
+    async updateCart( id: string, cart: ICarritoAdd ): Promise<ICarritoPopulate>{
         const filter = { cliente: id };
         return new Promise( ( resolve, reject) => Carrito
             .findOneAndUpdate(
