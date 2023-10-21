@@ -51,12 +51,16 @@ interface ItallaCantidadPrecio extends Document{
     idColor: string
 }
 
-interface IdireccionFacturacion extends Document{
+interface IdireccionFacturacion {
     pais: string,
     departamento: string,
     ciudad: string,
-    direccion: string,
-    especificacionOpcional?: string
+    barrio: string,
+    tipocalle: string,
+    callenumero: string,
+    numero1: string,
+    numero2: string,
+    especificacionOpcional: string,
 }
 
 export interface Iproductos extends Document{

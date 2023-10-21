@@ -19,8 +19,12 @@ const direccionFacturacion = new Schema({
     pais: String,
     departamento: String,
     ciudad: String,
-    direccion: String,
-    especificacionOpcional: String
+    barrio: String,
+    tipocalle: String,
+    callenumero: String,
+    numero1: String,
+    numero2: String,
+    especificacionOpcional: String,
 },{
     _id: false,
     versionKey: false
