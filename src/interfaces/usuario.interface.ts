@@ -45,8 +45,13 @@ interface Idireccion{
     pais: string,
     departamento: string,
     ciudad: string,
-    direccion: string,
-    especificacionOpcional: string
+    barrio: string,
+    tipocalle: string,
+    callenumero: string,
+    numero1: string,
+    numero2: string,
+    especificacionOpcional: string,
+    forInvoice: boolean
 }
 
 export interface IUserModel extends Model<IUser>{

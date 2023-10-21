@@ -8,6 +8,7 @@ import { IResponseMercadoPago, PayMercadopago } from "@Interfaces/payment.interf
 import { Icompra, Iproductos } from "@Interfaces/compra.interfaces";
 import { pagoDAO } from "@DAO/Pago.dao";
 import ProducerFactory from "@Services/kafkaProducer";
+import { carritoDAO } from "@DAO/Carrito.dao";
 
 const showCompraLog = require('../util/logger/logger.compra');
 
@@ -189,33 +190,44 @@ export const paymentController = new PaymentController();
 
 async function updateStateOrder ( idOrder: string, dataPayment: IResponseMercadoPago, status: string ){
     
-    const producer = new ProducerFactory();
-    await producer.start();
-
-    const order = await compraDAO.getOneByNumFactura( idOrder );
-    order.estado = status;
-    order.total = dataPayment.transaction_amount;
-    order.isCambioEstado = true;
-
-    //actualizacion de pago
-    const pago = await pagoDAO.getById( order.idPago );
-    pago.estado = status;
-    pago.idServiPago = dataPayment.id.toString();
-    pago.fechaPago = dataPayment.date_approved;
-    pago.metodoPago = dataPayment.payment_type_id;
-    pago.monto = dataPayment.transaction_amount;
-
-    await pagoDAO.updatePayment( pago._id, pago );
+    try {
+        
+        const producer = new ProducerFactory();
+        await producer.start();
     
-    const updateOrder = await compraDAO.updateBuy( order._id, order );
+        const order = await compraDAO.getOneByNumFactura( idOrder );
+        order.estado = status;
+        order.total = dataPayment.transaction_amount;
+        order.isCambioEstado = true;
+    
+        //actualizacion de pago
+        const pago = await pagoDAO.getById( order.idPago );
+        pago.estado = status;
+        pago.idServiPago = dataPayment.id.toString();
+        pago.fechaPago = dataPayment.date_approved;
+        pago.metodoPago = dataPayment.payment_type_id;
+        pago.monto = dataPayment.transaction_amount;
+    
+        await pagoDAO.updatePayment( pago._id, pago );
+        
+        const updateOrder = await compraDAO.updateBuy( order._id, order );
+    
+        //enviar mensaje a kafka para realizar envio
+        if( status === "pagado" ){
+            await producer.sendBatch( [ { idCliente: updateOrder.cliente as string, idCompra: updateOrder._id } ] );
+            await producer.shutdown();
+    
+            //limpiar carrito
+            clearCart( updateOrder.cliente.toString() );
+        }
 
-    //enviar mensaje a kafka para realizar envio
-    if( status === "pagado" ){
-        await producer.sendBatch( [ { idCliente: updateOrder.cliente as string, idCompra: updateOrder._id } ] );
-        await producer.shutdown();
+        if( status === "pendiente" ) clearCart( updateOrder.cliente.toString() );
+        
+        return updateOrder;
+    } catch (error) {
+        return "Error: " + error;
     }
-    
-    return updateOrder;
+
     
 }
 
@@ -278,5 +290,17 @@ async function changeQuantityProducts( idOrder: string, status?: string ): Promi
             success: false,
             message: `Error al cambiar cantidades: ${error}`
         }
+    }
+}
+
+async function clearCart( idCliente: string ) {
+    try {
+        await carritoDAO.updateCart( idCliente, 
+            { 
+                cliente: idCliente, 
+                productos: [] 
+            } );
+    } catch (error) {
+        console.log(error)
     }
 }
