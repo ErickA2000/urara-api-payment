@@ -1,6 +1,6 @@
 import { CODES_HTTP } from "@Constants/global";
 import { carritoDAO } from "@DAO/Carrito.dao";
-import { ICarritoAdd } from "@Interfaces/carrito.interface";
+import { ICarritoAdd, ICarritoPopulate } from "@Interfaces/carrito.interface";
 import { Iproductos } from "@Interfaces/compra.interfaces";
 import { Request, Response } from "express";
 
@@ -47,7 +47,10 @@ class CarritoController{
 
             res.status(CODES_HTTP.OK).json({
                 success: true,
-                data: carrito
+                data: {
+                    cart: carrito,
+                    quantity: carrito.productos.length
+                }
             })
 
         } catch (error) {
@@ -60,7 +63,7 @@ class CarritoController{
 
     public async addCart( req: Request, res: Response ){
         const { productos } = req.body;
-        
+        let cartQuantity: number = 0;;
         try {
 
             const cart = await carritoDAO.getOneByCliente( req.userId );
@@ -103,13 +106,16 @@ class CarritoController{
                     productos: productosArray
                 };
 
-                await carritoDAO.updateCart( req.userId, updateCart );
+                cartQuantity = (await carritoDAO.updateCart( req.userId, updateCart )).productos.length;
             }
 
 
             res.status(CODES_HTTP.OK).json({
                 success: true,
-                message: "Producto agregado al carrito "
+                message: "Producto agregado al carrito ",
+                data: {
+                    quantity: cartQuantity
+                }
             })
         } catch (error) {
             return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
@@ -122,11 +128,14 @@ class CarritoController{
     public async updateCart( req: Request, res: Response ){
         try {
             
-            await carritoDAO.updateCart( req.userId, req.body );
+            const cart = await carritoDAO.updateCart( req.userId, req.body );
             
             res.status(CODES_HTTP.OK).json({
                 success: true,
-                message: "Carrito actualizado"
+                message: "Carrito actualizado",
+                data: {
+                    quantity: cart.productos.length
+                }
             });
         } catch (error) {
             return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
@@ -157,7 +166,10 @@ class CarritoController{
             res.status(CODES_HTTP.OK).json({
                 success: true,
                 message: "Producto eliminado del carrito",
-                data: newCart
+                data: {
+                    cart: newCart,
+                    quantity: newCart.productos.length
+                }
             });
             
         } catch (error) {
