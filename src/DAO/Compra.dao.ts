@@ -31,17 +31,17 @@ class CompraDAO {
         )
     }
 
-    async getOne( id: string ): Promise<any>{
+    async getOne( id: string ): Promise<Icompra2 | null>{
         return new Promise( (resolve, reject) => Compra
             .findOne({ _id: id })
-            .populate<{ cliente: IUser }>({ path: 'cliente', select: 'nombre', model: "User"})
-            .populate<{ vendedor: IUser }>({ path: 'vendedor', select: 'nombre', model: "User"})
-            .populate<{ productos: productos2[] }>({ path: 'productos.productID', model: 'Prenda', select: 'nombre referencia imagenUrl' })
+            .populate({ path: 'cliente', select: 'nombre', model: "User"})
+            .populate({ path: 'vendedor', select: 'nombre', model: "User"})
+            .populate({ path: 'productos.productID', model: 'Prenda', select: 'nombre referencia imagenUrl' })
             .populate( { path: 'idPago', model: "Pago" } )
-            // .populate( { path: "idEnvio", model: "Envio" } )
+            .populate( { path: "idEnvio", model: "Envio" } )
             .exec( (err, docs) => {
                 if(err) return reject(err);
-                return resolve(docs!);
+                return resolve(docs as unknown as Icompra2);
             } )
         )
     }

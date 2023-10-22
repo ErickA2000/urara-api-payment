@@ -1,5 +1,4 @@
 import { productos2 } from "@Interfaces/compra.interfaces";
-import { Socket } from "net";
 
 export const generateArrayData = (productos: productos2[]) => {
     let result = [];

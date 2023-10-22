@@ -219,106 +219,117 @@ class CompraController {
 
     public async generarPDF(req: Request, res: Response) {
 
-        const compra = await compraDAO.getOne( req.params.compraID );
-
-        if(!compra) return res.status(CODES_HTTP.NO_FOUND).json({
-            success: false,
-            message: "No se encontro factura"
-        })
-        
-        const filename = `Factura_${Date.now()}.pdf`;
-
-        const doc = new jsPDF({
-            orientation: "portrait",
-            format: "a4",
-            compress: true
-        });
-
-        const infoUrara = env.infoUrara;
-        const imgPath = path.join(__dirname + "../../../assets/img/logo_urara.png");
-        let imgBase64 = "";
-
-        await imageToBase64(imgPath)
-            .then((res) => {
-                imgBase64 = res;
-
+        try {
+            
+            const compra = await compraDAO.getOne( req.params.compraID );
+    
+            if(!compra) return res.status(CODES_HTTP.NO_FOUND).json({
+                success: false,
+                message: "No se encontro factura"
             })
-            .catch((error) => {
-                return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
-                    success: false,
-                    message: `Error convertir imagen a base 64 -> ${error}`
-                })
+            
+            const filename = `Factura_${Date.now()}.pdf`;
+    
+            const doc = new jsPDF({
+                orientation: "portrait",
+                format: "a4",
+                compress: true
             });
-
-        doc.addImage(imgBase64, "PNG", 70, 15, 70, 25);
-        doc.setFont("times", "italic")
-            .text(`Nit: ${infoUrara.nit}`, 15, 45)
-            .text(`${infoUrara.direccion}`, 15, 51)
-            .text(`${infoUrara.ubicacion}`, 15, 58)
-            .text(`Telefono: +57 ${infoUrara.telefono}`, 15, 65)
-            .text(`Factura N° ${compra?.numFactura}`, 200, 55, { align: "right" })
-
-
-        doc.text(`Cliente: ${compra?.cliente.nombre}`, 15, 80)
-
-        if (compra?.telefono == null) {
-            doc.text(`Telefono: `, 15, 86)
-        } else {
-            doc.text(`Telefono: ${compra?.telefono.codigo_area} ${compra?.telefono.numero}`, 15, 86)
-        }
-
-        doc.text(`Dirección: ${compra?.direccionFacturacion.direccion}, ${compra?.direccionFacturacion.ciudad},${compra?.direccionFacturacion.departamento}, ${compra?.direccionFacturacion.pais}`, 15, 92)
-
-        if (compra?.direccionFacturacion.especificacionOpcional == null) {
-            doc.text(`Referencias adicionales: `, 15, 98)
-        } else {
-            doc.text(`Referencias adicionales: ${compra?.direccionFacturacion.especificacionOpcional}`, 15, 98)
-        }
-
-        const fechaVenta = format(compra?.createdAt!, "dd/MM/yyyy");
-
-        doc.text(`Forma de pago: ${compra?.formaPago}`, 15, 104)
-            .text(`Fecha de compra: ${fechaVenta}`, 15, 110);
-
-        const headers = ["Cantidad", "Producto", "Talla", "Valor_unitario", "Descuento"]
-        let finalY = 110;
-        
-        autoTable(doc, {
-            startY: finalY + 10,
-            head: [headers],
-            body: generateArrayData(compra?.productos!),
-            styles: {
-                halign: "center"
-            },
-            headStyles: {
-                fillColor: "#F40ACF"
+    
+            const infoUrara = env.infoUrara;
+            const imgPath = path.join(__dirname + "../../../assets/img/logo_urara.png");
+            let imgBase64 = "";
+    
+            await imageToBase64(imgPath)
+                .then((res) => {
+                    imgBase64 = res;
+    
+                })
+                .catch((error) => {
+                    return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
+                        success: false,
+                        message: `Error convertir imagen a base 64 -> ${error}`
+                    })
+                });
+    
+            doc.addImage(imgBase64, "PNG", 70, 15, 70, 25);
+            doc.setFont("times", "italic")
+                .text(`Nit: ${infoUrara.nit}`, 15, 45)
+                .text(`${infoUrara.direccion}`, 15, 51)
+                .text(`${infoUrara.ubicacion}`, 15, 58)
+                .text(`Telefono: +57 ${infoUrara.telefono}`, 15, 65)
+                .text(`Factura N° ${compra?.numFactura}`, 200, 55, { align: "right" })
+    
+    
+            doc.text(`Cliente: ${compra?.cliente.nombre}`, 15, 80)
+    
+            if (compra?.telefono == null) {
+                doc.text(`Telefono: `, 15, 86)
+            } else {
+                doc.text(`Telefono: ${compra?.telefono.codigo_area} ${compra?.telefono.numero}`, 15, 86)
             }
-        })
-        finalY = (doc as any).lastAutoTable.finalY;
-        let sumY = 10;
-        doc.text(`Subtotal: $ ${compra?.subtotal}`, 15, finalY + sumY)
-            .text(`Descuento: $ ${compra?.descuento}`, 15, finalY + (sumY += 7))
-            .text(`Iva: ${compra?.iva}%`, 15, finalY + (sumY += 7))
-            .text(`Valor iva: ${compra?.iva_moneda}`, 15, finalY + (sumY += 7))
-            .text(`Domicilio: ${compra?.domicilio}`, 15, finalY + (sumY += 7))
-            .text(`Total: $ ${compra?.total}`, 15, finalY + (sumY += 7))
-
-        //crear pdf
-        const pdfData = doc.output();
-        fs.writeFileSync(filename, pdfData, 'binary')
-
-        const ruta = path.join(__dirname + `../../../${filename}`);
-        showCompraLog.info({ message: `Generando PDF | Generador: ${ req.userId } de la compra/venta ${ req.params.compraID }` });
-        res.header({
-            "Content-Type": "application/pdf",
-            "Content-disposition": `attachment;filename=${filename}`,
-            "filname": `${filename}`,
-            "access-control-expose-headers": ["filname"]
-        }).download(ruta, filename, (err) => {
-            showCompraLog.warn({ message: 'Generando PDF | Error al descargar pdf' });
-            if (err) return res.json({ error: err })
-            fs.unlinkSync(ruta)
-        })
+    
+            doc.text(`Dirección: Barrio${compra?.direccionFacturacion.barrio}, ${compra.direccionFacturacion.tipocalle} ${compra.direccionFacturacion.callenumero}
+            #${compra.direccionFacturacion.numero1}-${compra.direccionFacturacion.numero2}, ${compra?.direccionFacturacion.ciudad},
+            ${compra?.direccionFacturacion.departamento}, ${compra?.direccionFacturacion.pais}`, 15, 92)
+    
+            if (compra?.direccionFacturacion.especificacionOpcional == null) {
+                doc.text(`Referencias adicionales: `, 15, 98)
+            } else {
+                doc.text(`Referencias adicionales: ${compra?.direccionFacturacion.especificacionOpcional}`, 15, 98)
+            }
+    
+            const fechaVenta = format(compra?.createdAt!, "dd/MM/yyyy");
+    
+            doc.text(`Forma de pago: ${compra?.idPago.metodoPago}`, 15, 104)
+                .text(`Fecha de compra: ${fechaVenta}`, 15, 110);
+    
+            const headers = ["Cantidad", "Producto", "Talla", "Valor_unitario", "Descuento"]
+            let finalY = 110;
+            
+            autoTable(doc, {
+                startY: finalY + 10,
+                head: [headers],
+                body: generateArrayData(compra?.productos!),
+                styles: {
+                    halign: "center"
+                },
+                headStyles: {
+                    fillColor: "#F40ACF"
+                }
+            })
+            finalY = (doc as any).lastAutoTable.finalY;
+            let sumY = 10;
+            doc.text(`Subtotal: $ ${compra?.subtotal}`, 15, finalY + sumY)
+                .text(`Descuento: $ ${compra?.descuento}`, 15, finalY + (sumY += 7))
+                .text(`Iva: ${compra?.iva}%`, 15, finalY + (sumY += 7))
+                .text(`Valor iva: ${compra?.iva_moneda}`, 15, finalY + (sumY += 7))
+                .text(`Domicilio: ${compra?.idEnvio.montoEnvio}`, 15, finalY + (sumY += 7))
+                .text(`Total: $ ${compra?.total}`, 15, finalY + (sumY += 7))
+    
+            //crear pdf
+            const pdfData = doc.output();
+            fs.writeFileSync(filename, pdfData, 'binary')
+    
+            const ruta = path.join(__dirname + `../../../${filename}`);
+            showCompraLog.info({ message: `Generando PDF | Generador: ${ req.userId } de la compra/venta ${ req.params.compraID }` });
+    
+            res.header({
+                "Content-Type": "application/pdf",
+                "Content-disposition": `attachment;filename=${filename}`,
+                "filname": `${filename}`,
+                "access-control-expose-headers": ["filname"]
+            }).download(ruta, filename, (err) => {
+                showCompraLog.warn({ message: 'Generando PDF | Error al descargar pdf' });
+                if (err) return res.json({ error: err })
+                fs.unlinkSync(ruta)
+            })
+        } catch (error) {
+            return res.status(CODES_HTTP.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: "Error al generar pdf:" + error
+            });
+        }
 
     }
 

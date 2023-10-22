@@ -1,6 +1,8 @@
 import { Document, Types } from "mongoose"
 import { IprendaDocument } from "@Interfaces/prenda.intrfaces";
 import { IUser, Iphone } from "./usuario.interface";
+import { IPago } from "./pago.interface";
+import { Ienvio } from "./envio.interface";
 
 export interface Icompra extends Document{
     numFactura: string | undefined,
@@ -23,7 +25,7 @@ export interface Icompra extends Document{
     createdAt: Date
 }
 
-export interface Icompra2{
+export interface Icompra2 extends Document{
     numFactura: string | undefined,
     idOrder: string,
     cliente: IUser,
@@ -39,8 +41,8 @@ export interface Icompra2{
     observaciones?: string,
     estado: string,
     isCambioEstado: boolean,
-    idPago: string,
-    idEnvio: string,
+    idPago: IPago,
+    idEnvio: Ienvio,
     createdAt: Date
 }
 
