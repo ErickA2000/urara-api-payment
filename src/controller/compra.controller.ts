@@ -269,23 +269,24 @@ class CompraController {
                 doc.text(`Telefono: ${compra?.telefono.codigo_area} ${compra?.telefono.numero}`, 15, 86)
             }
     
-            doc.text(`Dirección: Barrio${compra?.direccionFacturacion.barrio}, ${compra.direccionFacturacion.tipocalle} ${compra.direccionFacturacion.callenumero}
-            #${compra.direccionFacturacion.numero1}-${compra.direccionFacturacion.numero2}, ${compra?.direccionFacturacion.ciudad},
-            ${compra?.direccionFacturacion.departamento}, ${compra?.direccionFacturacion.pais}`, 15, 92)
+            doc.text(`Dirección: Barrio ${compra?.direccionFacturacion.barrio}, ${compra.direccionFacturacion.tipocalle} ${compra.direccionFacturacion.callenumero}`+
+            `#${compra.direccionFacturacion.numero1}-${compra.direccionFacturacion.numero2}`, 15, 92);
+
+            doc.text(`${compra?.direccionFacturacion.ciudad}, ${compra?.direccionFacturacion.departamento}, ${compra?.direccionFacturacion.pais}`, 15, 98);
     
             if (compra?.direccionFacturacion.especificacionOpcional == null) {
-                doc.text(`Referencias adicionales: `, 15, 98)
+                doc.text(`Referencias adicionales: `, 15, 104)
             } else {
-                doc.text(`Referencias adicionales: ${compra?.direccionFacturacion.especificacionOpcional}`, 15, 98)
+                doc.text(`Referencias adicionales: ${compra?.direccionFacturacion.especificacionOpcional}`, 15, 104)
             }
     
             const fechaVenta = format(compra?.createdAt!, "dd/MM/yyyy");
     
-            doc.text(`Forma de pago: ${compra?.idPago.metodoPago}`, 15, 104)
-                .text(`Fecha de compra: ${fechaVenta}`, 15, 110);
+            doc.text(`Forma de pago: ${compra?.idPago.metodoPago}`, 15, 110)
+                .text(`Fecha de compra: ${fechaVenta}`, 15, 118);
     
             const headers = ["Cantidad", "Producto", "Talla", "Valor_unitario", "Descuento"]
-            let finalY = 110;
+            let finalY = 115;
             
             autoTable(doc, {
                 startY: finalY + 10,
@@ -304,7 +305,7 @@ class CompraController {
                 .text(`Descuento: $ ${compra?.descuento}`, 15, finalY + (sumY += 7))
                 .text(`Iva: ${compra?.iva}%`, 15, finalY + (sumY += 7))
                 .text(`Valor iva: ${compra?.iva_moneda}`, 15, finalY + (sumY += 7))
-                .text(`Domicilio: ${compra?.idEnvio.montoEnvio}`, 15, finalY + (sumY += 7))
+                .text(`Envio: ${compra?.idEnvio.montoEnvio || ""}`, 15, finalY + (sumY += 7))
                 .text(`Total: $ ${compra?.total}`, 15, finalY + (sumY += 7))
     
             //crear pdf

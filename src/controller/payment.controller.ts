@@ -127,7 +127,7 @@ class PaymentController {
             if (query.type === "payment") {
 
                 const payid = query["data.id"] || 0;
-
+               
                 const data = await mercadoPagoService.findPayment(parseInt(payid.toString()));
                 
                 if (data.success === false) {

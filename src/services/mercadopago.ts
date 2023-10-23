@@ -32,7 +32,9 @@ class MercadoPagoService {
             notification_url: `${process.env.API_URL}/v1/api/payment/webhook-mercadopago/${numFactura}`,
             expires: true,
             back_urls: {
-                success: `${process.env.CLIENT_URL}/site/account/my-buys`
+                success: `${process.env.CLIENT_URL}/site/cart/payment/success`,
+                pending: `${process.env.CLIENT_URL}/site/cart/payment/pendding`,
+                failure: `${process.env.CLIENT_URL}/site/cart/payment/failure`
             }
         });
         
