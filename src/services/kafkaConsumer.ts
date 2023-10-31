@@ -1,6 +1,6 @@
 import updatePurchaseShipping from '@Helpers/updatePurchaseShipping';
 import { MessageProcessor } from '@Interfaces/kafka.interface';
-import { brokers_kafka, topic_shipment_kafka, clientId_shipment_kafka, groupId_shipment_kafka } from 'config';
+import { brokers_kafka, topic_shipment_kafka, clientId_shipment_kafka, groupId_shipment_kafka, aws } from 'config';
 import { Consumer, ConsumerSubscribeTopics, EachBatchPayload, Kafka, EachMessagePayload } from 'kafkajs';
 
 export default class ExampleConsumer {
@@ -36,7 +36,7 @@ export default class ExampleConsumer {
                 }
             })
         } catch (error) {
-            console.log('Error: ', error)
+            console.log('ERROR CONECT COMSUMER: ', error)
         }
     }
 
@@ -70,7 +70,14 @@ export default class ExampleConsumer {
     private createKafkaConsumer(): Consumer {
         const kafka = new Kafka({
             clientId: clientId_shipment_kafka,
-            brokers: brokers_kafka
+            brokers: brokers_kafka,
+
+            sasl: {
+                mechanism: 'aws',
+                authorizationIdentity: aws.userId,
+                accessKeyId: aws.accessKey,
+                secretAccessKey: aws.secrectAccessKey
+            }
         })
         const consumer = kafka.consumer({ groupId: groupId_shipment_kafka })
         return consumer

@@ -1,5 +1,5 @@
 import { Kafka, Message, Producer, ProducerBatch, TopicMessages } from 'kafkajs'
-import { brokers_kafka, clientId_payment_kafka, topic_payment_kafka } from 'config'
+import { brokers_kafka, clientId_payment_kafka, topic_payment_kafka, aws } from 'config'
 import { CustomMessageFormat } from '@Interfaces/kafka.interface'
 
 
@@ -47,6 +47,13 @@ export default class ProducerFactory {
         const kafka = new Kafka({
             clientId: clientId_payment_kafka,
             brokers: brokers_kafka,
+
+            sasl: {
+                mechanism: 'aws',
+                authorizationIdentity: aws.userId,
+                accessKeyId: aws.accessKey,
+                secretAccessKey: aws.secrectAccessKey
+            }
         })
 
         return kafka.producer()
