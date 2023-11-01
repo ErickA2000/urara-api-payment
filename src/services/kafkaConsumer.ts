@@ -71,12 +71,14 @@ export default class ExampleConsumer {
         const kafka = new Kafka({
             clientId: clientId_shipment_kafka,
             brokers: brokers_kafka,
-
+            authenticationTimeout: 3000,
+            connectionTimeout: 5000,
+            ssl: true,
             sasl: {
                 mechanism: 'aws',
                 authorizationIdentity: aws.userId,
                 accessKeyId: aws.accessKey,
-                secretAccessKey: aws.secrectAccessKey
+                secretAccessKey: aws.secrectAccessKey,
             }
         })
         const consumer = kafka.consumer({ groupId: groupId_shipment_kafka })

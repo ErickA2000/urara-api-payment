@@ -47,7 +47,9 @@ export default class ProducerFactory {
         const kafka = new Kafka({
             clientId: clientId_payment_kafka,
             brokers: brokers_kafka,
-
+            authenticationTimeout: 3000,
+            connectionTimeout: 5000,
+            ssl: true,
             sasl: {
                 mechanism: 'aws',
                 authorizationIdentity: aws.userId,
