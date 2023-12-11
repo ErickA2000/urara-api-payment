@@ -1,3 +1,5 @@
+[Spanish](README-es.md)
+
 # PAYMENT SERVICE FOR URARA
 
 This project is developed with typescript and then transpiled to javascript.    
